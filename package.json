@@ -1,0 +1,15 @@
+{
+  "name": "lunchup",
+  "version": "1.0.0",
+  "description": "A tool to randomly generate lunchtime meetup groups.",
+  "main": "index.js",
+  "bin": {
+    "lunchup": "bin/lunchup"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Schoonmaker <michael.r.schoonmaker@gmail.com> (http://www.schoonology.com/)",
+  "license": "MIT",
+  "dependencies": {}
+}
