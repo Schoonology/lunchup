@@ -13,11 +13,11 @@ npm install -g lunchup
 ## Usage
 
 ```
-lunchup CSV SIZE
+lunchup SIZE CSV
 ```
 
-Lunchup takes in a CSV of names to Cohorts, emitting a new CSV of groups to
-names. With no Cohort data, this list is simply randomized.
+Lunchup takes all input CSVs (including STDIN) of names to Cohorts, emitting a
+new CSV of names to groups. With no Cohort data, this list is simply randomized.
 
 For example, given the input:
 
@@ -33,7 +33,11 @@ Stephen, 300
 You might see the following:
 
 ```
-> lunchup in.csv 3
-Dave, Larry, Fred
-Schoon, Jim, Stephen
+> lunchup 3 in.csv
+Dave,0
+Larry,0
+Fred,0
+Schoon,1
+Stephen,1
+Jim,1
 ```
