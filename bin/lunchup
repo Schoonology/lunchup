@@ -3,22 +3,49 @@ var fs = require('fs')
 var path = require('path')
 var csv = require('csv')
 var minimist = require('minimist')
+var through = require('through')
 var LunchUpStream = require('../lib/stream')
 var argv = minimist(process.argv.slice(2))
 var groupSize = argv._[0]
-var inputCsv = argv._[1]
-var inputStream = process.stdin
+var inputPaths = argv._.slice(1)
+var inputStreams = [process.stdin]
+var lunch = new LunchUpStream({ groupSize: groupSize })
 
-if (inputCsv) {
-  inputStream = fs.createReadStream(path.resolve(process.cwd(), inputCsv))
+if (inputPaths.length) {
+  inputStreams = inputPaths.map(function (inputPath) {
+    return fs.createReadStream(path.resolve(process.cwd(), inputPath))
+  })
 }
 
-inputStream
-  .pipe(csv.parse({
-    comment: '#',
-    skip_empty_lines: true,
-    trim: true
-  }))
-  .pipe(new LunchUpStream({ groupSize: groupSize }))
+inputStreams
+  .forEach(function (stream, streamIndex) {
+    stream
+      .pipe(csv.parse({
+        comment: '#',
+        skip_empty_lines: true,
+        trim: true
+      }))
+      .pipe(through(function (record) {
+        this.emit(
+          'data',
+          record
+            .slice(0, 1)
+            .concat(
+              record
+                .slice(1)
+                .map(function (cohortId, cohortIndex) {
+                  return [streamIndex, cohortIndex, cohortId].join(':')
+                })
+            )
+        )
+      }, function () {
+        this.emit('end')
+      }))
+      .pipe(lunch, { end: false })
+  })
+
+lunch
   .pipe(csv.stringify())
   .pipe(process.stdout)
+
+lunch.endSoon()

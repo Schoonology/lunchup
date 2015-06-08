@@ -13,7 +13,7 @@ npm install -g lunchup
 ## Usage
 
 ```
-lunchup SIZE CSV
+lunchup SIZE [CSV ...]
 ```
 
 Lunchup takes all input CSVs (including STDIN) of names to Cohorts, emitting a
@@ -40,4 +40,21 @@ Fred,0
 Schoon,1
 Stephen,1
 Jim,1
+```
+
+## Rolling groups
+
+If `lunchup` is a tool you use repeatedly with the same input data, you can
+feed previous results into `lunchup`:
+
+```
+> lunchup 3 in.csv > week_1.csv
+> lunchup 3 in.csv week_1.csv > week_2.csv
+```
+
+Or, more succinctly:
+
+```
+> ls | xargs -n 1 echo | sort -r -f # (Figure out today's week number)
+> lunchup 3 *.csv > week_n.csv
 ```
