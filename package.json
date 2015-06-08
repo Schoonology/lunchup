@@ -7,7 +7,7 @@
     "lunchup": "bin/lunchup"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test $2"
   },
   "author": "Michael Schoonmaker <michael.r.schoonmaker@gmail.com> (http://www.schoonology.com/)",
   "license": "MIT",
