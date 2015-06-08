@@ -2,11 +2,8 @@
 var fs = require('fs')
 var path = require('path')
 var csv = require('csv')
-var debug = require('debug')('lunchup')
 var minimist = require('minimist')
-var through = require('through')
-var LunchUp = require('../lib/lunchup')
-var self = new LunchUp()
+var LunchUpStream = require('../lib/stream')
 var argv = minimist(process.argv.slice(2))
 var groupSize = argv._[0]
 var inputCsv = argv._[1]
@@ -16,46 +13,12 @@ if (inputCsv) {
   inputStream = fs.createReadStream(path.resolve(process.cwd(), inputCsv))
 }
 
-function createLoadTransform(lunchup) {
-  var records = []
-
-  return through(
-    function addRecord(record) {
-      records.push(record)
-    },
-    function computeGroups() {
-      lunchup.addData(records)
-    }
-  )
-}
-
 inputStream
   .pipe(csv.parse({
     comment: '#',
     skip_empty_lines: true,
     trim: true
   }))
-  .pipe((function () {
-    var records = []
-
-    return through(
-      function addRecord(record) {
-        records.push(record)
-      },
-      function computeGroups() {
-        var stream = this
-
-        self.addData(records)
-
-        self
-          .generateGroups(groupSize)
-          .forEach(function (row) {
-            stream.emit('data', row)
-          })
-
-        stream.emit('end')
-      }
-    )
-  }()))
+  .pipe(new LunchUpStream({ groupSize: groupSize }))
   .pipe(csv.stringify())
   .pipe(process.stdout)

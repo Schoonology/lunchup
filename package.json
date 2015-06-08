@@ -15,7 +15,7 @@
     "csv": "~0.4.2",
     "debug": "~2.2.0",
     "minimist": "~1.1.1",
-    "through": "~2.3.7",
+    "readable-stream": "~1.1.13",
     "weighted": "~0.3.0"
   }
 }
