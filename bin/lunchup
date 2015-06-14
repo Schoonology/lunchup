@@ -45,7 +45,7 @@ inputStreams
   })
 
 lunch
-  .pipe(csv.stringify())
+  .pipe(csv.stringify({ delimiter: ', ' }))
   .pipe(process.stdout)
 
 lunch.endSoon()
