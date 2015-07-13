@@ -1,6 +1,6 @@
 {
   "name": "lunchup",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A tool to randomly generate lunchtime meetup groups.",
   "main": "index.js",
   "bin": {
