@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 var fs = require('fs')
 var path = require('path')
+var combine = require('stream-combiner')
 var csv = require('csv')
 var minimist = require('minimist')
 var through = require('through')
@@ -11,41 +12,62 @@ var inputPaths = argv._.slice(1)
 var inputStreams = [process.stdin]
 var lunch = new LunchUpStream({ groupSize: groupSize })
 
+if (groupSize == null) {
+  console.error('Usage: lunchup GROUP_SIZE FILES [--key FILE]')
+  process.exit(1)
+}
+
+if (argv.key) {
+  fs.createReadStream(path.resolve(process.cwd(), argv.key))
+    .pipe(createCsvParser('key'))
+    .pipe(lunch.values())
+    .pipe(lunch, { end: false })
+
+  inputStreams = []
+}
+
 if (inputPaths.length) {
   inputStreams = inputPaths.map(function (inputPath) {
     return fs.createReadStream(path.resolve(process.cwd(), inputPath))
   })
 }
 
-inputStreams
-  .forEach(function (stream, streamIndex) {
+if (inputStreams.length) {
+  inputStreams.forEach(function (stream, streamIndex) {
     stream
-      .pipe(csv.parse({
-        comment: '#',
-        skip_empty_lines: true,
-        trim: true
-      }))
-      .pipe(through(function (record) {
-        this.emit(
-          'data',
-          record
-            .slice(0, 1)
-            .concat(
-              record
-                .slice(1)
-                .map(function (cohortId, cohortIndex) {
-                  return [streamIndex, cohortIndex, cohortId].join(':')
-                })
-            )
-        )
-      }, function () {
-        this.emit('end')
-      }))
+      .pipe(createCsvParser(streamIndex))
       .pipe(lunch, { end: false })
   })
+}
 
 lunch
   .pipe(csv.stringify({ delimiter: ', ' }))
   .pipe(process.stdout)
 
 lunch.endSoon()
+
+function createCsvParser(namespace) {
+  return combine(
+    csv.parse({
+      comment: '#',
+      skip_empty_lines: true,
+      trim: true
+    }),
+    through(function (record) {
+      this.emit(
+        'data',
+        record
+          .slice(0, 1)
+          .concat(
+            record
+              .slice(1)
+              .map(function (cohortId, cohortIndex) {
+                return [namespace, cohortIndex, cohortId].join(':')
+              })
+          )
+      )
+    }, function () {
+      this.emit('end')
+    })
+  )
+}
